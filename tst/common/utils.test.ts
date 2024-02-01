@@ -1,4 +1,22 @@
-import { countTokens } from "../../src/common/utils";
+import { countTokens, splitSentences } from "../../src/common/utils";
+
+test("splitSentences", () => {
+    expect(splitSentences("")).toStrictEqual([]);
+    expect(splitSentences(" ")).toStrictEqual([]);
+    expect(splitSentences("Hello World")).toStrictEqual(["Hello World"]);
+    expect(splitSentences("Hello World!")).toStrictEqual(["Hello World!"]);
+    expect(splitSentences("Hello World! ")).toStrictEqual(["Hello World!"]);
+    expect(splitSentences(" Hello World! ")).toStrictEqual(["Hello World!"]);
+    expect(splitSentences(" Hello World!")).toStrictEqual(["Hello World!"]);
+    expect(splitSentences("Hello")).toStrictEqual(["Hello"]);
+    expect(splitSentences("Hello.")).toStrictEqual(["Hello."]);
+    expect(splitSentences("Hello.\nWorld.")).toStrictEqual(["Hello.", "World."]);
+
+    // Test with multiple sentences
+    const sampleText = "Hello World! This is a test. I am testing the sentence splitter.";
+    const expectedSentences = ["Hello World!", "This is a test.", "I am testing the sentence splitter."];
+    expect(splitSentences(sampleText)).toStrictEqual(expectedSentences);
+});
 
 test("countTokens", () => {
     const sampleText = 
