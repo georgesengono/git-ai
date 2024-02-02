@@ -33,3 +33,25 @@ export function splitSentences(text: string): string[] {
         .filter(sentence => sentence.type === SentenceSplitterSyntax.Sentence)
         .map(sentence => sentence.raw);
 }
+
+/**
+ * Group sentences with overlap.
+ * This method groups 5 sentences with a 2-sentence overlap by default.
+ * 
+ * @param sentences 
+ * @param overlap 
+ * @returns 
+ */
+export function groupSentencesWithOverlap(sentences: string[], size: number, overlap: number = 2): string[] {
+    if (overlap < 0 || sentences.length <= overlap || size <= overlap || size <= 0) {
+        return sentences;
+    }
+
+    const groupedSentences: string[] = [];
+    for (let i = 0; i < sentences.length - overlap; i += size - overlap) {
+        const group = sentences.slice(i, i + size);
+        groupedSentences.push(group.join(" "));
+    }
+
+    return groupedSentences;
+}
