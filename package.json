@@ -21,5 +21,11 @@
         "ts-node": "^10.9.2",
         "tsup": "^8.0.1",
         "typescript": "^5.3.3"
+    },
+    "dependencies": {
+        "js-tiktoken": "^1.0.10",
+        "sentence-splitter": "^5.0.0",
+        "spacy": "^0.0.4",
+        "spacy-js": "^0.0.5"
     }
 }
