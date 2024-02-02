@@ -1,5 +1,6 @@
 import { getEncoding } from "js-tiktoken";
 import { split, SentenceSplitterSyntax } from "sentence-splitter";
+import { TextChunk, constants } from "./types";
 
 /**
  * Get the number of token in a text chunk.
@@ -54,4 +55,36 @@ export function groupSentencesWithOverlap(sentences: string[], size: number, ove
     }
 
     return groupedSentences;
+}
+/**
+ * Create a list of text chunks from a given text.
+ * 
+ * These chunks are created by grouping sentences with an overlap.
+ * They will be used to generate embeddings for the text.
+ * 
+ * @param text 
+ * @returns 
+ */
+export function splitText(text: string): TextChunk[] {
+    if (!text) {
+        return [];
+    }
+
+    const sentences = splitSentences(text);
+    const groupedSentences = 
+        groupSentencesWithOverlap(sentences, constants.TEXT_CHUNK_NUMBER_OF_SENTENCES, constants.TEXT_CHUNK_OVERLAP);
+    
+    const chunks: TextChunk[] = [];
+
+    for (let i = 0; i < groupedSentences.length; i++) {
+        const chunk = groupedSentences[i];
+        chunks.push({
+            text: chunk,
+            tokens: countTokens(chunk),
+            type: "text",
+            index: i,
+        });
+    }
+
+    return chunks;
 }
