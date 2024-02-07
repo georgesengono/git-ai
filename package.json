@@ -23,7 +23,9 @@
         "typescript": "^5.3.3"
     },
     "dependencies": {
+        "dotenv": "^16.4.1",
         "js-tiktoken": "^1.0.10",
+        "openai": "^4.26.0",
         "sentence-splitter": "^5.0.0",
         "spacy": "^0.0.4",
         "spacy-js": "^0.0.5"

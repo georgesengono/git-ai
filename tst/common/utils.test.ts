@@ -1,4 +1,4 @@
-import { TextChunk } from "../../src/common/types";
+import { TextChunk, CreateEmbeddingRequest } from "../../src/common/types";
 import { countTokens, splitSentences, groupSentencesWithOverlap, splitText } from "../../src/common/utils";
 
 test("splitSentences", () => {
@@ -72,4 +72,15 @@ test("splitText", () => {
     expect(splitText("")).toStrictEqual([]);
     expect(splitText(" ")).toStrictEqual([]);
     expect(splitText(sampleText)).toStrictEqual(expectedChunks);
+});
+
+test("CreateEmbeddingRequest", () => {
+    const request = new CreateEmbeddingRequest("Hello World", "text-embedding-ada-002");
+    expect(request.input).toBe("Hello World");
+    expect(request.model).toBe("text-embedding-ada-002");
+    expect(request.encoding_format).toBe(undefined);
+    expect(request.dimensions).toBe(undefined);
+    expect(request.user_id).toBe(undefined);
+
+    expect(() => new CreateEmbeddingRequest("", "text-embedding-ada-002")).toThrow(Error);
 });
