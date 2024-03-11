@@ -30,9 +30,18 @@ export function splitSentences(text: string): string[] {
         return [];
     }
 
-    return split(text)
-        .filter(sentence => sentence.type === SentenceSplitterSyntax.Sentence)
-        .map(sentence => sentence.raw);
+    const sentences = split(text).filter(sentence => sentence.type === SentenceSplitterSyntax.Sentence)
+                                .map(sentence => sentence.raw);
+
+    const sentences2 = sentences.map(sentence => sentence.trim()).filter(sentence => sentence.length > 0);
+    for (let i = 0; i < sentences2.length; i++) {
+        sentences2[i] = sentences2[i].replace("`", "\`");
+        sentences2[i] = sentences2[i].replace("'", "\'");
+        sentences2[i] = sentences2[i].replace('"', '\"');
+    }
+    console.log(sentences2);
+
+    return sentences2;
 }
 
 /**
@@ -51,7 +60,7 @@ export function groupSentencesWithOverlap(sentences: string[], size: number, ove
     const groupedSentences: string[] = [];
     for (let i = 0; i < sentences.length - overlap; i += size - overlap) {
         const group = sentences.slice(i, i + size);
-        groupedSentences.push(group.join(" "));
+        groupedSentences.push(group.join(" ").trim());
     }
 
     return groupedSentences;
