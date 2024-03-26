@@ -1,0 +1,6 @@
+ M ../../.env
+ M ../index.ts
+?? file_status.txt
+?? git-client.ts
+?? git-script.sh
+?? git-types.ts
