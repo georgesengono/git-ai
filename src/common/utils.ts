@@ -39,7 +39,6 @@ export function splitSentences(text: string): string[] {
         sentences2[i] = sentences2[i].replace("'", "\'");
         sentences2[i] = sentences2[i].replace('"', '\"');
     }
-    console.log(sentences2);
 
     return sentences2;
 }

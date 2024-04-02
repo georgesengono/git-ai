@@ -24,22 +24,15 @@ export class GitClient {
                   console.log(`stderr: ${stderr}`);
                   return;
                 }
-                console.log(`stdout: ${stdout}`);
+                // console.log(`stdout: ${stdout}`);
+                this.updateProjectStatus(stdout);
               });
         });
-        // return new Promise((resolve, reject) => {
-        //     execFile(this.gitScriptPath, (error, stdout, stderr) => {
-        //         if (error) {
-        //             reject(error);
-        //         } else {
-        //             resolve(stdout);
-        //         }
-        //     });
-        // });
     }
 
-    updateProjectStatus(): void {
-        // Get the latest project status and save it to the file_status.json file
+    updateProjectStatus(status: string): void {
+        const FILE_PATH = path.resolve(__dirname, 'project-status.txt');
+        fs.writeFileSync(FILE_PATH, status);
     }
 }
 
