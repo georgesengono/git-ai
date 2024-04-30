@@ -3,14 +3,7 @@ import { OpenAIEmbeddingFunction } from "chromadb";
 import { TextChunk } from "../../common/types";
 import { exec, ChildProcess, spawn } from "child_process";
 
-// Start the Chroma backend server: chroma run --path /db_path
-// http://localhost:8000/api/v1/collections
-
-// To update chroma to the latest version: docker pull chromadb/chroma
-// To run chroma (in chroma folder): docker run -p 8000:8000 -v /Users/garthur007/Desktop/Université/Session\ VI/IFT\ 3150/chroma:/chroma/chroma chromadb/chroma
-
 // TO add private keys (watch this video): https://www.youtube.com/watch?v=61kaK-e3Owc
-
 class Chroma {
     static instance: Chroma | null = null;
     private client: ChromaClient;
@@ -398,22 +391,22 @@ export async function query(collectionName: string, q: string, openai_api_key: s
     return await chroma.query(collectionName, q);
 }
 
-export async function pullChromaImage() {
-    const chroma = await Chroma.getChroma("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");
+export async function pullChromaImage(openai_api_key: string) {
+    const chroma = await Chroma.getChroma(openai_api_key);
     return await chroma.pullChroma();
 }
 
-export async function runChromaImage() {
-    const chroma = await Chroma.getChroma("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");
+export async function runChromaImage(openai_api_key: string) {
+    const chroma = await Chroma.getChroma(openai_api_key);
     return await chroma.runChroma();
 }
 
-export async function stopChromaImage() {
-    const chroma = await Chroma.getChroma("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");
+export async function stopChromaImage(openai_api_key: string) {
+    const chroma = await Chroma.getChroma(openai_api_key);
     return await chroma.stopChroma();
 }
 
-export async function linkChromaFolder() {
-    const chroma = await Chroma.getChroma("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");
+export async function linkChromaFolder(openai_api_key: string) {
+    const chroma = await Chroma.getChroma(openai_api_key);
     return await chroma.linkChromaFolder();
 }

@@ -7,7 +7,8 @@ export const constants = {
     TEXT_CHUNK_NUMBER_OF_SENTENCES: 5, // The number of sentences in a text chunk
     TEXT_CHUNK_OVERLAP: 2, // The number of sentences to overlap between chunks
     CONTEXT_LENGTH_LIMIT: 2048, // The maximum length of the context for the OpenAI APIs
-    TOKEN_LIMIT: 8192 // The maximum number of tokens for the OpenAI APIs
+    TOKEN_LIMIT: 8192, // The maximum number of tokens for the OpenAI APIs
+    OPENAI_AI_API_KEY: "", // <YOUR_API_KEY> The OpenAI API key
 };
 
 /**

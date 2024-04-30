@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Go to the directory where the git repo is 
-# cd /Users/garthur007/Desktop/Université/Session VI/IFT 3150/git-ai/
 
 # Get branch information
 # echo "Branches and their last commit:"
@@ -21,6 +19,8 @@
 #     echo ""
 # done
 
+## For now, we are only interested in the current branch because 
+## the code above generate an output too big to be given to the LLM.
 # echo ""
 echo "Current Git Status:"
 git status 

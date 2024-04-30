@@ -9,12 +9,15 @@ import { peek,
         stopChromaImage,
         linkChromaFolder } from "../chroma/chroma";
 
-/*******************  CHROMA API *******************/
-let openai_api = "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";//process.env.OPENAI_API_KEY as string;
-if (!openai_api) {
-    throw new Error("No OpenAI API key found");
-}
+import { constants } from "../../common/types";
 
+
+/*******************  CHROMA API *******************/
+let openai_api = constants.OPENAI_AI_API_KEY;
+if (!openai_api || openai_api.length === 0) {
+    console.error("Please set your OpenAI API key in the OPENAI_AI_API_KEY environment variable form the src/common/types.ts");
+    process.exit(1);
+}
 
 let gitCommands = "git-commands";
 
@@ -31,7 +34,6 @@ export async function countCollection(collectionName: string = gitCommands) {
 }
 
 export async function createCollection(collectionName: string = gitCommands) {
-    console.log(`Creating collection: ${collectionName}`)
     await create(collectionName, openai_api);
 }
 
@@ -40,22 +42,21 @@ export async function deleteCollection(collectionName: string) {
 }
 
 export async function insertCollection(ids: string[], metadatas: any[], documents: string[], collectionName: string = gitCommands) {
-    console.log(`Inserting documents into collection: ${collectionName}`)
     await insert(collectionName, ids, metadatas, documents, openai_api);
 }
 
 export async function pullChroma() {
-    await pullChromaImage();
+    await pullChromaImage(openai_api);
 }
 
 export async function linkChroma() {
-    await linkChromaFolder();
+    await linkChromaFolder(openai_api);
 }
 
 export async function runChroma() {
-    await runChromaImage();
+    await runChromaImage(openai_api);
 }
 
 export async function stopChroma() {
-    await stopChromaImage();
+    await stopChromaImage(openai_api);
 }
