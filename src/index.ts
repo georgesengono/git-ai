@@ -1,59 +1,36 @@
 #!/usr/bin/env node
 
 import { input, confirm } from "@inquirer/prompts";
-import { sendChat, serveOllama, stopOllama, runOllamaModel } from "./service/api";
-import { run } from "./service/ollama/ollama";
-
+import { sendChat, serveOllama, stopOllama, runOllamaModel } from "./service/api/ollamaApi";
+import { runChroma, stopChroma } from "./service/api/chromaApi";
 
 async function main() {
-    // Start the Ollama server and
-    // await serveOllama();
+    // start the chroma db
+    await runChroma();
 
-    // // Run the Ollama model
-    // await runOllamaModel();
+    // Start the Ollama server
+    await serveOllama();
 
-    const answers = async () => {
-        const query = await input({ message: "" , theme: {prefix: "🤖"}});
-        return { query };
-    };
+    // Run the Ollama model
+    await runOllamaModel();
 
-    answers().then(async (answers) => {
-        const { query } = answers;
+    while (true) {
+        const query = await input({ message: "user : ", theme: {prefix: "😃"}});
+        if (query === "exit") {
+            break;
+        }
+        
+        process.stdout.write("🤖 ai   : \n");
         const res = await sendChat(query);
-    });
+    }
 
     // Stop the Ollama server
-    // confirm({ message: "Stop Ollama server?", default: false }).then(async (answers) => {
-    //     if (answers) {
-    //         stopOllama();
-    //     }
-    // });
+    confirm({ message: "Stop git-ai?", default: false }).then(async (answers) => {
+        if (answers) {
+            stopOllama();
+            stopChroma();
+        }
+    });
 }
 
 main();
-
-
-
-// Start the Ollama server and
-
-
-// // Run the Ollama model
-// runOllamaModel();
-
-// const answers = async () => {
-//     const query = await input({ message: "" , theme: {prefix: "🤖"}});
-//     return { query };
-// };
-
-// answers().then(async (answers) => {
-//     const { query } = answers;
-//     const res = await sendChat(query);
-//     console.log(res);
-// });
-
-// // Stop the Ollama server
-// confirm({ message: "Stop Ollama server?", default: false }).then(async (answers) => {
-//     if (answers) {
-//         stopOllama();
-//     }
-// });

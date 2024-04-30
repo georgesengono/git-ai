@@ -1,6 +1,7 @@
 import { ChromaClient } from "chromadb";
 import { OpenAIEmbeddingFunction } from "chromadb"; 
-import { TextChunk } from "./types";
+import { TextChunk } from "../../common/types";
+import { exec, ChildProcess, spawn } from "child_process";
 
 // Start the Chroma backend server: chroma run --path /db_path
 // http://localhost:8000/api/v1/collections
@@ -10,20 +11,164 @@ import { TextChunk } from "./types";
 
 // TO add private keys (watch this video): https://www.youtube.com/watch?v=61kaK-e3Owc
 
-export class ChromaWrapper {
+class Chroma {
+    static instance: Chroma | null = null;
     private client: ChromaClient;
     private OPENAI_API_KEY: string;
     private embedder: OpenAIEmbeddingFunction;
+    private childProcess: ChildProcess | null = null;
+    private ChromaContainerName: string = "GITAI_CHROMA_CONTAINER";
 
     constructor(openai_api_key: string) {
-        if (!openai_api_key || openai_api_key.length === 0 || openai_api_key === undefined) {
-            throw new Error("Invalid API key");
-        }
-
+        this.childProcess = null;
         this.client = new ChromaClient({ path: "http://0.0.0.0:8000" });
         this.OPENAI_API_KEY = openai_api_key
         this.embedder = new OpenAIEmbeddingFunction({
             openai_api_key: this.OPENAI_API_KEY,
+        });
+    }
+
+    /**
+     * Get the Chroma instance.
+     * 
+     * @param openai_api_key the Open
+     */
+    static async getChroma(openai_api_key: string) {
+        if (this.instance === null) {
+            this.instance = new this(openai_api_key);
+        }
+
+        return this.instance;
+    }
+     
+    /**
+     * Pull Chroma Docker image.
+     */
+    async pullChroma(): Promise<void>{
+        // Pull the chroma docker image
+        console.log("Pulling Chroma image...");
+        this.childProcess = exec("docker pull chromadb/chroma", (error, stdout, stderr) => {
+            if (error) {
+                console.error(`exec error: ${error}`);
+                return;
+            }
+            if (stderr) {
+                console.error(`stderr: ${stderr}`);
+                return;
+            }
+
+            // console.log(`stdout: ${stdout}`);
+        });
+                
+        // wait for the process to exit to resolve the promise
+        await new Promise<void>((resolve) => {
+            this.childProcess?.on('exit', (code) => {
+            if (code === 0) {
+                console.log("Chroma image pulled successfully ✅");
+                this.childProcess?.kill();
+                this.childProcess = null;
+            }
+            resolve();
+            });
+        });
+    }
+
+    async linkChromaFolder() {
+        console.log("Linking Chroma folder...");
+        const currentPath = process.cwd().replace("/src", "/chroma");
+        this.childProcess = spawn("docker run -d --name " + this.ChromaContainerName + " -p 8000:8000 -v " + this.cleanPath(currentPath) + ":/chroma/chroma chromadb/chroma", {shell: true});
+        
+        this.childProcess.stdout?.on('data', (data) => {
+            // console.log(`stdout: ${data}`);
+        });
+
+        this.childProcess.stderr?.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 5000)).then(() => {
+            this.childProcess?.kill();
+            this.childProcess = null;
+            console.log("Chroma folder linked successfully ✅");
+        });
+    }
+
+    /**
+     * Run Chroma Docker image.
+     */
+    async runChroma() {
+        // Run the chroma docker image
+        console.log("Running Chroma image...");
+        this.childProcess = await exec("docker start " + this.ChromaContainerName, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`exec error: ${error}`);
+                return;
+            }
+            if (stderr) {
+                console.error(`stderr: ${stderr}`);
+                return;
+            }
+
+            // console.log(`stdout: ${stdout}`);
+        });
+
+        await new Promise<void>((resolve) => {
+            this.childProcess?.on('exit', (code) => {
+                if (code === 0) {
+                    console.log("Chroma image started successfully ✅");
+                    this.childProcess?.kill();
+                    this.childProcess = null;
+                }
+                resolve();
+            });
+        });
+    }
+
+    /**
+     * Replace spaces in a path with a pattern to avoid issues with the exec command.
+     * @param path 
+     * @returns 
+     */
+    cleanPath(path: string): string {
+        const patternToRemove = "@&@"
+
+        while (path.includes(" ")) {
+            path = path.replace(" ", `\\${patternToRemove}`);
+        }
+
+        while (path.includes(patternToRemove)) {
+            path = path.replace(patternToRemove, " ");
+        }
+
+        return path;
+    }
+
+    /**
+     * Stop Chroma Docker image.
+     */
+    async stopChroma() {
+        exec("docker stop " + this.ChromaContainerName, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`exec error: ${error}`);
+                return;
+            }
+            if (stderr) {
+                console.error(`stderr: ${stderr}`);
+                return;
+            }
+
+            // console.log(`stdout: ${stdout}`);
+        });
+
+        await new Promise<void>((resolve) => {
+            this.childProcess?.on('exit', (code) => {
+                if (code === 0) {
+                    console.log("Chroma image stopped successfully ✅");
+                    this.childProcess?.kill();
+                    this.childProcess = null;
+                }
+                resolve();
+            });
         });
     }
 
@@ -77,13 +222,7 @@ export class ChromaWrapper {
      * @param collectionName 
      */
     async deleteCollection(collectionName: string) {
-        console.log("Are you sure you want to delete the colletion: %s? (y/n)", collectionName );
-        let userInput = await process.stdin.read();
-        if (userInput === "y") {
-            await this.client.deleteCollection({name: collectionName});
-        } else {
-            console.log("Operation cancelled");
-        }
+        await this.client.deleteCollection({name: collectionName});
     }
 
     /**
@@ -100,9 +239,9 @@ export class ChromaWrapper {
 
         const embeddings = await this.getEmbeddings(documents);
 
-        collection.add({
+        await collection.add({
             ids: ids,
-            metadatas: metadatas,
+            metadatas: undefined,
             documents: documents,
             embeddings: embeddings,
         });
@@ -192,10 +331,6 @@ export class ChromaWrapper {
         }
     }
 
-    async delete() {
-        // Delete the collection
-    }
-
     /**
      * Queries the database for a given query.
      * 
@@ -210,7 +345,7 @@ export class ChromaWrapper {
         }
 
         let qEmbeddings = await this.getEmbedding(q);
-        let result = collection.query({queryEmbeddings: qEmbeddings, queryTexts: [q], nResults: 1});
+        let result = collection.query({queryEmbeddings: qEmbeddings, queryTexts: [q], nResults: 1 });
 
         return result;
     }
@@ -221,16 +356,9 @@ export class ChromaWrapper {
      * This method will reset the database. This operation is destructive and irreversible.
      * For this reason, it asks for user confirmation before proceeding.
      * 
-     * @param askForConfirmation If true, the method will ask for user confirmation before proceeding.
-     * q                         The default value is true.
      * @returns
      */
     async reset(askForConfirmation: boolean = true) {
-        if (!askForConfirmation) {
-            await this.client.reset();
-            return;
-        }
-        console.log("Are you sure you want to reset the database? (y/n)");
         let userInput = process.stdin.read();
         if (userInput === "y") {
             await this.client.reset();
@@ -238,4 +366,54 @@ export class ChromaWrapper {
             console.log("Operation cancelled");
         }
     }
+}
+
+export async function peek(collectionName: string, openai_api_key: string) {
+    const chroma = await Chroma.getChroma(openai_api_key);
+    return await chroma.peek(collectionName);
+}
+
+export async function count(collectionName: string, openai_api_key: string) {
+    const chroma = await Chroma.getChroma(openai_api_key);
+    return await chroma.count(collectionName);
+}
+
+export async function create(collectionName: string, openai_api_key: string) {
+    const chroma = await Chroma.getChroma(openai_api_key);
+    return await chroma.createCollection(collectionName);
+}
+
+export async function deleteChromaCollection(collectionName: string, openai_api_key: string) {
+    const chroma = await Chroma.getChroma(openai_api_key);
+    return await chroma.deleteCollection(collectionName);
+}
+
+export async function insert(collectionName: string, ids: string[], metadatas: any[], documents: string[], openai_api_key: string) {
+    const chroma = await Chroma.getChroma(openai_api_key);
+    return await chroma.insert(collectionName, ids, metadatas, documents);
+}
+
+export async function query(collectionName: string, q: string, openai_api_key: string) {
+    const chroma = await Chroma.getChroma(openai_api_key);
+    return await chroma.query(collectionName, q);
+}
+
+export async function pullChromaImage() {
+    const chroma = await Chroma.getChroma("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");
+    return await chroma.pullChroma();
+}
+
+export async function runChromaImage() {
+    const chroma = await Chroma.getChroma("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");
+    return await chroma.runChroma();
+}
+
+export async function stopChromaImage() {
+    const chroma = await Chroma.getChroma("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");
+    return await chroma.stopChroma();
+}
+
+export async function linkChromaFolder() {
+    const chroma = await Chroma.getChroma("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");
+    return await chroma.linkChromaFolder();
 }

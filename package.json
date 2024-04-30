@@ -10,10 +10,14 @@
     ],
     "scripts": {
         "build": "tsup",
-        "test": "jest"
+        "test": "jest",
+        "install": "npx ts-node ./src/setupDB.ts"
     },
     "author": "Georges Arthur Engono E.",
     "license": "ISC",
+    "bin": {
+        "git-ai": "./dist/index.js"
+    },
     "devDependencies": {
         "@types/jest": "^29.5.11",
         "jest": "^29.7.0",
@@ -24,14 +28,19 @@
     },
     "dependencies": {
         "@braintree/sanitize-url": "^7.0.0",
+        "@inquirer/prompts": "^4.3.2",
         "chromadb": "^1.8.1",
         "dotenv": "^16.4.5",
+        "inquirer": "^9.2.17",
         "js-tiktoken": "^1.0.10",
+        "ollama": "^0.5.0",
         "openai": "^4.26.0",
+        "ora": "^8.0.1",
         "pdf-parse": "^1.1.1",
         "sentence-splitter": "^5.0.0",
         "spacy": "^0.0.4",
         "spacy-js": "^0.0.5",
-        "string-sanitizer": "^2.0.2"
+        "string-sanitizer": "^2.0.2",
+        "winston": "^3.13.0"
     }
 }

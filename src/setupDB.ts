@@ -1,23 +1,36 @@
-import { ChromaWrapper } from "./common/chroma-client"; 
-import { OpenAIWrapper } from "./common/openai-wrapper";
-import { splitText } from "./common/utils";
+import { createCollection, insertCollection, pullChroma, runChroma, stopChroma, linkChroma } from "./service/api/chromaApi";
 import fs from "fs";
 
-//////////////// Setup the database with the git-commands.txt file //////////////////////
-
-const api_key = process.env.OPENAI_API_KEY;
-
-if (!api_key) {
-    throw new Error("No OpenAI API key found");
-}
-
-const chroma = new ChromaWrapper(api_key as string);
+//////////////// Setup the chroma vector db file //////////////////////
 
 const collectionName = "git-commands";
 
-let text = fs.readFileSync('data/git-commands.txt', 'utf8');
-const textChunks = splitText(text);
+const file = fs.readFileSync("../data/git-commands.json", "utf8");
+const data = JSON.parse(file);
 
-console.log("Inserting text chunks into the database...");
-chroma.insertChunks(collectionName, textChunks);
-console.log("Done!");
+const ids: string[] = [];
+const metadatas: any[] = [];
+const documents: any = [];
+
+for (let i = 0; i < Object.keys(data).length; i++) {
+    const key = Object.keys(data)[i];
+    const doc = key + "\n" + data[key].join("\n");
+    ids.push(i.toString());
+    documents.push(doc);
+}
+
+async function setUpChromaDB() {   
+    await pullChroma();
+
+    await linkChroma();
+
+    await runChroma();
+
+    await createCollection(collectionName);
+
+    await insertCollection(ids, metadatas, documents, collectionName);
+
+    await stopChroma();
+}
+
+setUpChromaDB();

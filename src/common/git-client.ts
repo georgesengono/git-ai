@@ -2,20 +2,23 @@ import { execFile, exec } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 
-// This client will be used to get the current project status 
-// and to execute git commands.
+/**
+ * This client will be used to get the current project status
+ * and to execute git commands.
+ * For now, lets only get the different branches of the repository 
+ * and the commits of each branch.
+ */
 export class GitClient {
     private gitScriptPath: string;
     constructor() {
-        // Resolve the absolute path to the script
-        this.gitScriptPath = path.resolve(__dirname, 'git-script.sh');
+        this.gitScriptPath = path.resolve(__dirname, 'git-script.sh').replace("dist", "src/common");
         fs.chmodSync(this.gitScriptPath, '755');
     }
 
     executeGitScript(): Promise<string> {
         // Ensure the script is executable
         return new Promise((resolve, reject) => {
-            execFile('./common/git-script.sh', (error, stdout, stderr) => {
+            execFile(this.gitScriptPath, (error, stdout, stderr) => {
                 if (error) {
                   console.log(`error: ${error.message}`);
                   return;
@@ -24,8 +27,8 @@ export class GitClient {
                   console.log(`stderr: ${stderr}`);
                   return;
                 }
-                // console.log(`stdout: ${stdout}`);
                 this.updateProjectStatus(stdout);
+                return resolve(stdout);
               });
         });
     }
@@ -35,10 +38,3 @@ export class GitClient {
         fs.writeFileSync(FILE_PATH, status);
     }
 }
-
-/**
- * For now, lets only get the different branches of the repository 
- * and the commits of each branch.
- * 
- * 
- */
