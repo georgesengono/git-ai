@@ -4,7 +4,7 @@
 
 **Link to Final Report**
 
-<ADD_LINK_TO_WEBSITE >
+https://georgesengono.github.io/ift3150-bronco_doc/
 
 **The following frameworks are required to run GIT-AI:**
 
