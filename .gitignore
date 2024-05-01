@@ -9,3 +9,9 @@
 
 # environment file
 .env
+
+# vector db
+/chroma
+
+# chat message
+/src/chat-message.txt
